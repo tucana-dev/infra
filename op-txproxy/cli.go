@@ -8,7 +8,7 @@ import (
 
 const (
 	SendRawTransactionConditionalEnabledFlagName   = "sendRawTxConditional.enabled"
-	SendRawTransactionConditionalBackendsFlagName  = "sendRawTxConditional.backends"
+	SendRawTransactionConditionalBackendFlagName   = "sendRawTxConditional.backend"
 	SendRawTransactionConditionalRateLimitFlagName = "sendRawTxConditional.ratelimit"
 )
 
@@ -27,8 +27,8 @@ func CLIFlags(envPrefix string) []cli.Flag {
 			EnvVars: opservice.PrefixEnvVar(envPrefix, "SENDRAWTXCONDITIONAL_ENABLED"),
 		},
 		&cli.StringSliceFlag{
-			Name:    SendRawTransactionConditionalBackendsFlagName,
-			Usage:   "List of backends to broadcast conditional transactions",
+			Name:    SendRawTransactionConditionalBackendFlagName,
+			Usage:   "block builder to broadcast conditional transactions",
 			EnvVars: opservice.PrefixEnvVar(envPrefix, "SENDRAWTXCONDITIONAL_BACKENDS"),
 		},
 		&cli.Uint64Flag{
@@ -43,7 +43,7 @@ func CLIFlags(envPrefix string) []cli.Flag {
 func ReadCLIConfig(ctx *cli.Context) CLIConfig {
 	return CLIConfig{
 		SendRawTransactionConditionalEnabled:   ctx.Bool(SendRawTransactionConditionalEnabledFlagName),
-		SendRawTransactionConditionalBackend:   ctx.String(SendRawTransactionConditionalBackendsFlagName),
+		SendRawTransactionConditionalBackend:   ctx.String(SendRawTransactionConditionalBackendFlagName),
 		SendRawTransactionConditionalRateLimit: ctx.Uint64(SendRawTransactionConditionalRateLimitFlagName),
 	}
 }
