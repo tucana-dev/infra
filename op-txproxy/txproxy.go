@@ -14,19 +14,19 @@ var (
 	MetricsNameSpace = "op_txproxy"
 )
 
-type TxPool struct {
+type TxProxy struct {
 	conditionalTxService *ConditionalTxService
 }
 
-func NewTxPool(ctx context.Context, log log.Logger, m metrics.Factory, cfg *CLIConfig) (*TxPool, error) {
+func NewTxProxy(ctx context.Context, log log.Logger, m metrics.Factory, cfg *CLIConfig) (*TxProxy, error) {
 	conditionalTxService, err := NewConditionalTxService(ctx, log, m, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create conditional tx service: %w", err)
 	}
 
-	return &TxPool{conditionalTxService}, nil
+	return &TxProxy{conditionalTxService}, nil
 }
 
-func (txp *TxPool) GetAPIs() []gethrpc.API {
+func (txp *TxProxy) GetAPIs() []gethrpc.API {
 	return []gethrpc.API{{Namespace: "eth", Service: txp.conditionalTxService}}
 }

@@ -29,10 +29,10 @@ func main() {
 
 	app := cli.NewApp()
 	app.Version = params.VersionWithCommit(GitCommit, GitDate)
-	app.Name = "op-txpool"
-	app.Usage = "Optimism TxPool Service"
+	app.Name = "op-txproxy"
+	app.Usage = "Optimism TxProxy Service"
 	app.Description = "Auxilliary service to supplement op-stack transaction pool management"
-	app.Action = cliapp.LifecycleCmd(TxPoolMain)
+	app.Action = cliapp.LifecycleCmd(TxProxyMain)
 
 	logFlags := oplog.CLIFlags(EnvVarPrefix)
 	rpcFlags := rpc.CLIFlags(EnvVarPrefix)
@@ -45,19 +45,19 @@ func main() {
 	}
 }
 
-func TxPoolMain(ctx *cli.Context, closeApp context.CancelCauseFunc) (cliapp.Lifecycle, error) {
+func TxProxyMain(ctx *cli.Context, closeApp context.CancelCauseFunc) (cliapp.Lifecycle, error) {
 	log := oplog.NewLogger(oplog.AppOut(ctx), oplog.ReadCLIConfig(ctx))
 	m := metrics.With(metrics.NewRegistry())
 
 	cfg := optxproxy.ReadCLIConfig(ctx)
-	txpool, err := optxproxy.NewTxPool(ctx.Context, log, m, &cfg)
+	txproxy, err := optxproxy.NewTxProxy(ctx.Context, log, m, &cfg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to start superchain backend: %w", err)
 	}
 
 	rpcConfig := rpc.ReadCLIConfig(ctx)
 	rpcOpts := []rpc.ServerOption{
-		rpc.WithAPIs(txpool.GetAPIs()),
+		rpc.WithAPIs(txproxy.GetAPIs()),
 		rpc.WithLogger(log),
 		rpc.WithMiddleware(optxproxy.AuthMiddleware(optxproxy.DefaultAuthHeaderKey)),
 	}
