@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/metrics"
 	"github.com/ethereum-optimism/optimism/op-service/opio"
 	"github.com/ethereum-optimism/optimism/op-service/rpc"
-	optxpool "github.com/ethereum-optimism/optimism/op-txpool"
+	optxproxy "github.com/ethereum-optimism/optimism/op-txproxy"
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
@@ -21,7 +21,7 @@ import (
 var (
 	GitCommit    = ""
 	GitDate      = ""
-	EnvVarPrefix = "OP_TXPOOL"
+	EnvVarPrefix = "op_txproxy"
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 
 	logFlags := oplog.CLIFlags(EnvVarPrefix)
 	rpcFlags := rpc.CLIFlags(EnvVarPrefix)
-	backendFlags := optxpool.CLIFlags(EnvVarPrefix)
+	backendFlags := optxproxy.CLIFlags(EnvVarPrefix)
 	app.Flags = append(append(backendFlags, rpcFlags...), logFlags...)
 
 	ctx := opio.WithInterruptBlocker(context.Background())
@@ -49,8 +49,8 @@ func TxPoolMain(ctx *cli.Context, closeApp context.CancelCauseFunc) (cliapp.Life
 	log := oplog.NewLogger(oplog.AppOut(ctx), oplog.ReadCLIConfig(ctx))
 	m := metrics.With(metrics.NewRegistry())
 
-	cfg := optxpool.ReadCLIConfig(ctx)
-	txpool, err := optxpool.NewTxPool(ctx.Context, log, m, &cfg)
+	cfg := optxproxy.ReadCLIConfig(ctx)
+	txpool, err := optxproxy.NewTxPool(ctx.Context, log, m, &cfg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to start superchain backend: %w", err)
 	}
@@ -59,7 +59,7 @@ func TxPoolMain(ctx *cli.Context, closeApp context.CancelCauseFunc) (cliapp.Life
 	rpcOpts := []rpc.ServerOption{
 		rpc.WithAPIs(txpool.GetAPIs()),
 		rpc.WithLogger(log),
-		rpc.WithMiddleware(optxpool.AuthMiddleware(optxpool.DefaultAuthHeaderKey)),
+		rpc.WithMiddleware(optxproxy.AuthMiddleware(optxproxy.DefaultAuthHeaderKey)),
 	}
 
 	rpcServer := rpc.NewServer(rpcConfig.ListenAddr, rpcConfig.ListenPort, ctx.App.Version, rpcOpts...)

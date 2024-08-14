@@ -1,4 +1,4 @@
-package op_txpool
+package op_txproxy
 
 import (
 	"context"

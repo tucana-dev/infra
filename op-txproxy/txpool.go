@@ -1,4 +1,4 @@
-package op_txpool
+package op_txproxy
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	MetricsNameSpace = "op_txpool"
+	MetricsNameSpace = "op_txproxy"
 )
 
 type TxPool struct {
