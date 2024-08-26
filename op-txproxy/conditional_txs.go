@@ -13,6 +13,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/rpc"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -21,10 +23,10 @@ import (
 
 var (
 	// errs
-	rateLimitErr             = &JsonError{Message: "rate limited", Code: types.TransactionConditionalRejectedErrCode}
-	endpointDisabledErr      = &JsonError{Message: "endpoint disabled", Code: types.TransactionConditionalRejectedErrCode}
-	missingAuthenticationErr = &JsonError{Message: "missing authentication", Code: types.TransactionConditionalRejectedErrCode}
-	entrypointSupportErr     = &JsonError{Message: "only 4337 Entrypoint contract support", Code: types.TransactionConditionalRejectedErrCode}
+	rateLimitErr             = &rpc.JsonError{Message: "rate limited", Code: params.TransactionConditionalRejectedErrCode}
+	endpointDisabledErr      = &rpc.JsonError{Message: "endpoint disabled", Code: params.TransactionConditionalRejectedErrCode}
+	missingAuthenticationErr = &rpc.JsonError{Message: "missing authentication", Code: params.TransactionConditionalRejectedErrCode}
+	entrypointSupportErr     = &rpc.JsonError{Message: "only 4337 Entrypoint contract support", Code: params.TransactionConditionalRejectedErrCode}
 )
 
 type ConditionalTxService struct {
@@ -49,7 +51,7 @@ func NewConditionalTxService(ctx context.Context, log log.Logger, m metrics.Fact
 	rpcMetrics := metrics.MakeRPCClientMetrics("backend", m)
 	backend := client.NewInstrumentedRPC(rpc, &rpcMetrics)
 
-	limiter := rate.NewLimiter(types.TransactionConditionalMaxCost, int(cfg.SendRawTransactionConditionalRateLimit))
+	limiter := rate.NewLimiter(params.TransactionConditionalMaxCost, int(cfg.SendRawTransactionConditionalRateLimit))
 	entrypointAddresses := map[common.Address]bool{predeploys.EntryPoint_v060Addr: true, predeploys.EntryPoint_v070Addr: true}
 
 	return &ConditionalTxService{
@@ -116,15 +118,15 @@ func (s *ConditionalTxService) sendCondTx(ctx context.Context, caller common.Add
 		return txHash, entrypointSupportErr
 	}
 	if err := cond.Validate(); err != nil {
-		return txHash, &JsonError{
+		return txHash, &rpc.JsonError{
 			Message: fmt.Sprintf("failed conditional validation: %s", err),
-			Code:    types.TransactionConditionalRejectedErrCode,
+			Code:    params.TransactionConditionalRejectedErrCode,
 		}
 	}
-	if cost > types.TransactionConditionalMaxCost {
-		return txHash, &JsonError{
-			Message: fmt.Sprintf("conditional cost, %d, exceeded max: %d", cost, types.TransactionConditionalMaxCost),
-			Code:    types.TransactionConditionalCostExceededMaxErrCode,
+	if cost > params.TransactionConditionalMaxCost {
+		return txHash, &rpc.JsonError{
+			Message: fmt.Sprintf("conditional cost, %d, exceeded max: %d", cost, params.TransactionConditionalMaxCost),
+			Code:    params.TransactionConditionalCostExceededMaxErrCode,
 		}
 	}
 
