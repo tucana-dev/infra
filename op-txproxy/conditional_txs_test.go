@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 
@@ -78,7 +79,7 @@ func TestSendRawTransactionConditionalInvalidTxTarget(t *testing.T) {
 
 func TestSendRawTransactionConditionals(t *testing.T) {
 	costExcessiveCond := types.TransactionConditional{KnownAccounts: make(types.KnownAccounts)}
-	for i := 0; i < (types.TransactionConditionalMaxCost + 1); i++ {
+	for i := 0; i < (params.TransactionConditionalMaxCost + 1); i++ {
 		iBig := big.NewInt(int64(i))
 		root := common.BigToHash(iBig)
 		costExcessiveCond.KnownAccounts[common.BigToAddress(iBig)] = types.KnownAccount{StorageRoot: &root}
