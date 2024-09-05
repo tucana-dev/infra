@@ -1,0 +1,184 @@
+# List of WS methods to whitelist.
+  ws_method_whitelist = [
+    "eth_subscribe",
+    "eth_unsubscribe",
+    "eth_chainId"
+]
+  # Enable WS on this backend group. There can only be one WS-enabled backend group.
+    ws_backend_group = "main"
+
+  [server]
+  # Host for the proxyd RPC server to listen on.
+    rpc_host = "0.0.0.0"
+  # Port for the above.
+    rpc_port = 8545
+  # Host for the proxyd WS server to listen on.
+    ws_host = "0.0.0.0"
+  # Port for the above
+  # Set the ws_port to 0 to disable WS
+    ws_port = 8546
+  # Maximum client body size, in bytes, that the server will accept.
+    max_body_size_bytes = 10485760
+    max_concurrent_rpcs = 1000
+  # Server log level
+    log_level = "info"
+
+  [cache]
+    enabled = false
+
+  [redis]
+  # URL to a Redis instance.
+  # url = "redis://localhost:6379"
+  # namespace = ""
+
+  [metrics]
+  # Whether or not to enable Prometheus metrics.
+    enabled = true
+  # Host for the Prometheus metrics endpoint to listen on.
+    host = "0.0.0.0"
+  # Port for the above.
+    port = 9090
+
+  [rate_limit]
+    use_redis = false
+    base_rate = 300
+    base_interval = "1s"
+  #exempt_origins = ["example.com", "api.example.com"]
+  #exempt_user_agents = ["UserAgent1", "UserAgent2"]
+    error_message = "rate limit exceeded, please try it later."
+    ip_header_override = ""
+    disuse_ip = true
+
+  [backend]
+  # How long proxyd should wait for a backend response before timing out.
+    response_timeout_seconds = 5
+  # Maximum response size, in bytes, that proxyd will accept from a backend.
+    max_response_size_bytes = 5242880
+  # Maximum number of times proxyd will try a backend before giving up.
+    max_retries = 3
+  # Number of seconds to wait before trying an unhealthy backend again.
+    out_of_service_seconds = 600
+  # Maximum latency accepted to serve requests, default 10s
+    max_latency_threshold = "30s"
+  # Maximum latency accepted to serve requests before degraded, default 5s
+    max_degraded_latency_threshold = "10s"
+  # Maximum error rate accepted to serve requests, default 0.5 (i.e. 50%)
+    max_error_rate_threshold = 0.3
+
+  [backends]
+  # A map of backends by name
+
+  [backends.sequencer]
+    rpc_url = "http://op-geth:8545"
+    ws_url = ""
+    username = ""
+    password = ""
+    max_rps = 3
+    max_ws_conns = 1
+    consensus_receipts_target = "eth_getBlockReceipts"
+    weight = 1
+
+  [backend_groups]
+  [backend_groups.main]
+    backends = ["sequencer"]
+  # Enable consensus awareness for backend group, making it act as a load balancer, default false
+  # consensus_aware = true
+  # Period in which the backend wont serve requests if banned, default 5m
+  # consensus_ban_period = "1m"
+  # Maximum delay for update the backend, default 30s
+  # consensus_max_update_threshold = "20s"
+  # Maximum block lag, default 8
+  # consensus_max_block_lag = 16
+  # Maximum block range (for eth_getLogs method), no default
+  # consensus_max_block_range = 20000
+  # Minimum peer count, default 3
+  # consensus_min_peer_count = 4
+
+  [backend_groups.second]
+    backends = ["sequencer"]
+
+  [backend_groups.sequencer]
+    backends = ["sequencer"]
+
+  # If the authentication group below is in the config,
+  # proxyd will only accept authenticated requests.
+  [authentication]
+  # Mapping of auth key to alias. The alias is used to provide a human-
+  # readable name for the auth key in monitoring. The auth key will be
+  # read from the environment if an environment variable prefixed with $
+  # is provided. Note that you will need to quote the environment variable
+  # in order for it to be value TOML, e.g. "$FOO_AUTH_KEY" = "foo_alias".
+  # secret = "test"
+
+  # Mapping of methods to backend groups.
+  [rpc_method_mappings]
+  #Getting Blocks
+  # Retrieves information from a particular block in the blockchain.
+    eth_blockNumber = "main"
+    eth_getBlockByNumber = "second"
+    eth_getBlockByHash = "main"
+    eth_getBlockTransactionCountByNumber = "main"
+    eth_getBlockTransactionCountByHash = "main"
+    eth_getBlockRange = "main"
+  #Getting Uncles
+  #Returns information on uncle blocks which are network rejected blocks and replaced by a canonical block instead.
+    eth_getUncleByBlockHashAndIndex = "main"
+    eth_getUncleByBlockNumberAndIndex = "main"
+    eth_getUncleCountByBlockHash = "main"
+    eth_getUncleCountByBlockNumber = "main"
+  #Getting hash( alchemy not inculded)
+    eth_getHeaderByNumber = "main"
+    eth_getHeaderByHash = "main"
+  #Reading Transactions
+  #Retrieves information on the state data for addresses regardless of whether it is a user or a smart contract.
+    eth_getTransactionByBlockHashAndIndex = "main"
+    eth_getTransactionByBlockNumberAndIndex = "main"
+    eth_getRawTransactionByBlockNumberAndIndex = "main"   #( alchemy not inculded)
+    eth_getRawTransactionByBlockHashAndIndex = "main"     #( alchemy not inculded)
+    eth_getTransactionCount = "main"
+    eth_getTransactionByHash = "main"
+    eth_getTransactionReceipt = "main"
+    eth_getRawTransactionByHash = "main"
+  #Writing Transactions & EVM Execution
+  #Allows developers to both send ETH from one address to another, write data on-chain, and interact with smart contracts.
+    eth_call = "second"
+    eth_sendRawTransaction = "sequencer"
+    eth_resend = "main" #Getting hash( alchemy not inculded)
+  #Account Information
+  #Returns information regarding an address's stored on-chain data.
+    eth_getBalance = "second"
+  #eth_accounts = "main"    [forbidden]
+    eth_getProof = "second"
+    eth_getCode = "second"
+    eth_getStorageAt = "second"
+  #Event Logs
+  #Returns logs which are records that denote/provide context on specific events within a smart contract, like a token transfer or a change of ownership for example.
+    eth_getLogs = "main"
+    eth_newFilter = "main"
+    eth_newBlockFilter = "main"
+    eth_newPendingTransactionFilter = "main"
+    eth_getFilterLogs = "main"
+    eth_getFilterChanges = "main"
+    eth_uninstallFilter = "main"
+  #Chain Information
+  #Returns information on the Optimism network and internal settings.
+    eth_protocolVersion = "main"
+    eth_chainId = "main"
+    net_listening = "main"
+    eth_syncing = "main"
+    net_version = "main"
+  #Gas Estimation
+    eth_estimateGas = "second"
+    eth_gasPrice = "second"
+
+  #Real-time Events
+  #Introduces WebSocket-based requests/responses which leverage a network connection allowing developers to listen for changes continuously without the need for HTTP polling.
+    eth_subscribe = "main"
+    eth_unsubscribe = "main"
+  # txstatus,added for txstatus
+    eth_getTxStatusByHash = "main"
+    eth_getTxStatusDetailByHash = "main"
+
+  # rollup api
+    rollup_getInfo = "main"   #( alchemy not inculded)
+    rollup_gasPrices = "main" #( alchemy not inculded)
